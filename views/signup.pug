@@ -1,0 +1,17 @@
+extends layout 
+block content 
+    .signin 
+        h1 dont have an account 
+        div.center 
+            h3 sign up 
+            if hasErrors 
+                each mess in messages 
+                    span.err= mess 
+            form(action='/signup' method= 'POST')
+                div.field 
+                    div.label(for='email') Email 
+                    input(type= 'email' name= 'email' placeholder= 'email')
+                div.field 
+                    div.label(for= 'password') password 
+                    input(type= 'password' name= 'password' placeholder='password')
+                button.btn(type= 'submit') Sign up 
