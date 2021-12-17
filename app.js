@@ -15,7 +15,8 @@ var ModbusData= require('./models/modbusData');
 app.use(session({
   secret:'cat',
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: {maxAge:600}
 }));
 app.use(flash());
 app.use(passport.initialize());
@@ -29,7 +30,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-mongoose.connect('mongodb+srv://vietbk02:vietbk02@cluster0.8yaqq.mongodb.net/nodemailer?retryWrites=true&w=majority',
+ mongoose.connect('mongodb+srv://vietbk02:vietbk02@cluster0.8yaqq.mongodb.net/nodemailer?retryWrites=true&w=majority',
 {
     useUnifiedTopology: true,
     useNewUrlParser: true
@@ -59,14 +60,19 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 //require('./modbus');
-/* ModbusData.find({ip_address:'192.168.43.75'}, function(err, data){
-  if (err) throw err;
-  console.log(data);
-}) */
-ModbusData.find({}, function(err, datas){
-  if (err) throw err;
-  console.log(datas[0].datas);
-})
+
+//section for read modbus data
+
+var Modbus= require('./modbus');
+
+
+
+  var ipList= ['192.168.1.101','192.168.1.6','192.168.1.10'];
+  for(var i =0;i<ipList.length;i++){
+      Modbus.readData(ipList[i],0);
+      }
+
+
 module.exports = app;
 
 //authentiication user

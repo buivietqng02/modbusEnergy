@@ -22,6 +22,9 @@ passport.use('local.signup', new LocalStrategy({
         var newUser= new User();
         newUser.email= email;
         newUser.password= newUser.encryptPassword(password);
+        newUser.username= req.body.username;
+        newUser.ipAddress= req.body.modbus;
+        newUser.port= req.body.port;
         newUser.save(function(err, result){
             if (err) {
                 return done(err);
@@ -38,7 +41,7 @@ passport.use('local.signin', new LocalStrategy({
   User.findOne({'email': email}, function(err, user){
       if (err) {return done(err);}
       if (!user) {
-          return done(null, false, {message: 'not user foiund'});
+          return done(null, false, {message: 'not username found'});
       }
       if (!user.validPassword(password)) {
           return done(null, false,{message: 'wrong password'});

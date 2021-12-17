@@ -1,0 +1,11 @@
+extends layout 
+block content 
+    each user in users 
+        ul 
+            li Username:  #{user.username} 
+            li Email:  #{user.email} 
+            li Room:  #{user.room} 
+            li modbus address:  #{user.ipAddress}
+            li
+                p 
+                    a(href='/user/'+user.id+'/delete') Delete User

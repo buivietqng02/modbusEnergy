@@ -1,0 +1,7 @@
+extends layout 
+block content 
+    h1 wellcome to #{email}
+    ul 
+        each data in datas 
+            li= data.value 
+            li= data.time

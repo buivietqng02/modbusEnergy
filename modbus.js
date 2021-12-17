@@ -2,7 +2,8 @@ const modbus= require('jsmodbus');
 const net= require('net');
 var ModbusData= require('./models/modbusData');
 var mongoose= require('mongoose');
-mongoose.connect('mongodb+srv://vietbk02:vietbk02@cluster0.8yaqq.mongodb.net/nodemailer?retryWrites=true&w=majority',
+var User= require('./models/user.model');
+/* mongoose.connect('mongodb+srv://vietbk02:vietbk02@cluster0.8yaqq.mongodb.net/nodemailer?retryWrites=true&w=majority',
 {
     useUnifiedTopology: true,
     useNewUrlParser: true
@@ -10,33 +11,39 @@ mongoose.connect('mongodb+srv://vietbk02:vietbk02@cluster0.8yaqq.mongodb.net/nod
     );
     const db= mongoose.connection;
 db.on('error', (error)=> {console.log(error)})
-db.once('open', ()=> {console.log('connected to db')})
+db.once('open', ()=> {console.log('connected to db')}) */
+//list all ip address modbus
 
-//const socket= new net.Socket();
+exports.ipList= async  function() {
+    var ipList=[];
+    var list= await User.find({});
+        list.forEach((item)=> {
+            if (item.ipAddress)
+            ipList.push(item.ipAddress);
+        })
 
-//const client = new modbus.client.TCP(socket);
+    console.log(ipList);
+    return ipList;
+    
+}
 
 
-  function readData(ipAddress, registerAddress){
+  exports.readData=function(ipAddress, registerAddress){
     const socket= new net.Socket();
     const client = new modbus.client.TCP(socket);
     var options= {
         'host': ipAddress,
-        'port': "502"
+        'port': "503"
     };
-    
-     
-    socket.connect(options);
-    
-    
+     socket.connect(options);
     socket.on('connect', function(){
         console.log('connected');
         client.readHoldingRegisters(registerAddress, 1)
         .then(function(res){
             console.log(res.response._body.valuesAsArray);
-            
-             ModbusData.find({ip_address: ipAddress}).exec(function(err, list){
+            ModbusData.find({ip_address: ipAddress}).exec(function(err, list){
                  if (err) throw err;
+                 //if not found, create new 
                  if (list.length==0) {console.log('no db');
                  var obj= {ip_address: ipAddress};
                  var modbusdata= new ModbusData(obj);
@@ -45,6 +52,7 @@ db.once('open', ()=> {console.log('connected to db')})
                      console.log('new db insert');
                  })
                 }
+                    // if ip found, add data to db
                 if (list.length>0) {
                     console.log(list);
                         console.log(list[0].datas);
@@ -75,13 +83,4 @@ db.once('open', ()=> {console.log('connected to db')})
    
 
 }
-var ipList= [
-    '192.168.1.1',
-    '192.145.2.1',
-    '192.168.43.75'
-];
-setInterval(function(){
-    for(var ip of ipList){
-        readData(ip,0);
-        }
-},10000)
+
