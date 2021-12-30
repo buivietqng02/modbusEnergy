@@ -15,7 +15,7 @@ db.once('open', ()=> {console.log('connected to db')}) */
 //list all ip address modbus
 
 exports.ipList= async  function() {
-    var ipList=[];
+    var ipList=new Array();
     var list= await User.find({});
         list.forEach((item)=> {
             if (item.ipAddress)
@@ -33,7 +33,7 @@ exports.ipList= async  function() {
     const client = new modbus.client.TCP(socket);
     var options= {
         'host': ipAddress,
-        'port': "503"
+        'port': "502"
     };
      socket.connect(options);
     socket.on('connect', function(){
@@ -54,8 +54,8 @@ exports.ipList= async  function() {
                 }
                     // if ip found, add data to db
                 if (list.length>0) {
-                    console.log(list);
-                        console.log(list[0].datas);
+                    
+                        
                         var data= {
                             value: 10+ Math.random()*10,
                             time: Date.now()
@@ -64,7 +64,7 @@ exports.ipList= async  function() {
                        list[0].save(function(err){
                            if (err) throw err;
                            console.log(list[0].datas.length);
-                           console.log(list[0].datas)
+                           
                        })
                        
                 }
@@ -72,10 +72,12 @@ exports.ipList= async  function() {
             
 
         })
+        .catch(err=> console.error(err))
+           
         
     });
     socket.on('error', function(error){
-        console.log(error.code);
+        console.log('error when access ip:'+ ipAddress+' error code '+ error.code);
        
         socket.end();
         //socket.end();

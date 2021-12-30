@@ -14,11 +14,13 @@ passport.use('local.signup', new LocalStrategy({
     passwordField:'password',
     passReqToCallback: true
 }, function(req, email, password, done){
-    User.findOne({'email': email}, function(err, user){
+    User.findOne({'email': email},  async function(err, user){
         if (err) {return done(err);}
         if (user) {
             return done(null, false, {message: 'email already in use'})
         }
+        var findUser= await User.find({ipAddress:req.body.modbus});
+        if (findUser.length>0) return done(null,false, {message: 'modbus address already in use'})
         var newUser= new User();
         newUser.email= email;
         newUser.password= newUser.encryptPassword(password);

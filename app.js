@@ -66,12 +66,17 @@ app.use(function(err, req, res, next) {
 var Modbus= require('./modbus');
 
 
-
-  var ipList= ['192.168.1.101','192.168.1.6','192.168.1.10'];
+ setInterval(async function(){
+ var ipList=  await Modbus.ipList();
+ console.log(ipList.length);
+ console.log(ipList[0]);
+ 
+  //var ipList=["192.168.1.10", "192.168.1.20", "192.168.1.110"];
   for(var i =0;i<ipList.length;i++){
+      console.log(ipList[i]);
       Modbus.readData(ipList[i],0);
       }
-
+    },10000); 
 
 module.exports = app;
 

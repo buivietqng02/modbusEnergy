@@ -39,33 +39,65 @@ router.post('/signin', passport.authenticate('local.signin', {
   failureRedirect:'/signin',
   failureFlash: true
 }), function(req, res){
-  res.redirect(req.user.id);
+  res.redirect('/users/'+req.user.id);
 });
 //plot a user data using query month or date
-router.get('/:id/plot', async function(req, res){
+router.get('/users/:id', async function(req, res){
  var user= await User.find({_id: req.params.id});
  console.log(user[0].email);
- var ipAddress= user[0].ipAddress;
- console.log(ipAddress);
- let obj=await ModbusData.find({ip_address: ipAddress});
- var datas=obj[0].datas;
+ var formAction= '/users/'+ req.params.id+'/plot';
 
 
- res.render('user_page', {email: user[0].email, datas: datas});
+ res.render('user_page', {email: user[0].email, req: req, formAction:formAction} );
+})
+//return data to plot
+router.get('/users/:id/plot',async  function(req, res, next){
+  const q= req.query;//date
+  console.log(q.date);
+  var obj= q.date.split('-');
+  console.log('year: '+ obj[0]);
+  console.log('month: '+ obj[1]);
+  console.log('day: '+ obj[2]);
+   User.findById({_id: req.params.id}, function(err, result){
+    if (err) {next(err);}
+    console.log(result);
+    var ip= result.ipAddress;
+    ModbusData.findOne({ip_address: ip}, function(err, mb){
+      console.log("here");
+      if (err) {next(err);}
+       console.log(mb);
+       if (mb== 'undefined') res.send("no data");
+       
+     var datas= mb.datas.map(item=>Object.assign(item, {"time": new Date(item.time)}));
+
+    res.json(datas);
+       
+     
+    })
+    
+  });
+  
+
+ 
+ 
 })
 //get all users
 router.get('/users', async function(req, res, next){
+  console.log(req.query);
+  console.log(req.query.room);
+  console.log(req.query.useremail);
+  console.log(req.query.ipaddress);
   let users= await User.find({});
-  res.render('users', {users: users});
+ var usersfilter= users.filter(user=> 
+    (user.email.includes(req.query.useremail))&&
+    (user.room ? user.room.includes(req.query.room) : true)
+    &&(user.ipAddress ? user.ipAddress.includes(req.query.ipaddress) : true));
+
+  res.render('users', {users: usersfilter});
 
 })
-//get session
-router.get('/get_session', function(req, res){
-  if (req.session) {
-    return res.status(200).json({status:'success', session:req.session});
-  }
-  return res.status(200).json({status: 'error', session: 'no session'});
-})
+
+
 //delete a user
 router.get('/user/:id/delete', function(req, res, next){
   User.findById(req.params.id).exec(function(err, user){
@@ -83,10 +115,21 @@ router.post('/user/:id/delete', function(req, res, next){
     })
   })
 })
+router.get('/users/plot', function(req, res, next){
 
+})
 
 //plot data on a date of all user
 //plot data the days in month of all user
 //create bill and send email
 
+router.get('/change_password_get', function(req, res){
+  res.render('change_password')
+})
+router.put('/change_password_put', function(req, res, next){
+  console.log(req.email);
+  console.log(req.oldpassword);
+  console.log(req.newpassport);
+  res.send("OK");
+})
 module.exports = router;
