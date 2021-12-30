@@ -1,0 +1,16 @@
+extends layout 
+block content 
+    
+    h1 wellcome to #{email}
+    - let user = req.url
+        h1  #{user}
+    h1 Plot data in a date 
+    form(action= `${formAction}`, method='get')
+        label(for='select') Date 
+        input(type="checkbox" name= "select")
+        label(for='date') Please choose date to plot 
+        input(type="date" name= "date")
+        label(for='month') Please choose month to plot 
+        input(type="month" name= "month" min="2018-03" value= "2018-05")
+        input(type="submit" value= "PLOT")
+

@@ -1,0 +1,26 @@
+extends layout 
+block content 
+    canvas#myChart 
+    script(type="text/javascript").
+        const myChart= document.getElementById('myChart').getContext('2d')
+       fetch('/plot')
+       .then(res=>res.json())
+       .then(data1=> var data= data1 )
+        var labels= []
+        var data1=[]
+        data.forEach(item=> {
+            labels.push(item.time);
+            data1.push(item.value);
+        })
+        console.log(data1)
+        let massPopChart= new Chart(myChart, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'popu',
+                    data: data1
+                }]
+            }
+        })
+

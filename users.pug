@@ -1,0 +1,18 @@
+extends layout 
+block content 
+    form(method="GET")
+        input(type="text" placeholder="room" name="room")
+        input(type= "text" placeholder= "useremail" name= "useremail")
+        input(type="text" name= "ipaddress" placeholder= "modbus address")
+        input(type= "submit" value="Search")
+    each user in users 
+        ul 
+            li Username:  #{user.username} 
+            li Email:  #{user.email} 
+            li Room:  #{user.room} 
+            li modbus address:  #{user.ipAddress}
+            li link: 
+                a(href='/users/'+ user.id) go to user page
+            li
+                p 
+                    a(href='/user/'+user.id+'/delete') Delete User

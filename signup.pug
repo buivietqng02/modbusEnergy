@@ -1,0 +1,30 @@
+extends layout 
+block content 
+    .signin 
+        h1 dont have an account 
+        div.center 
+            h3 sign up 
+            if hasErrors 
+                each mess in messages 
+                    span.err= mess 
+            form(action='/signup' method= 'POST')
+                div.field 
+                    div.label(for='email') Email 
+                    input(type= 'email' name= 'email' placeholder= 'email')
+                div.field 
+                    div.label(for='username') Username
+                    input(type= 'text' name= 'username' placeholder= 'username')
+                div.field 
+                    div.label(for= 'password') password 
+                    input(type= 'password' name= 'password' placeholder='password')
+                div.field 
+                    div.label(for= 'modbus') Meter device modbus adress 
+                    input(type= 'text' name= 'modbus' placeholder='0.0.0.0')
+                div.field 
+                    div.label(for= 'port') Meter device modbus port
+                    input(type= 'number' name= 'port' placeholder=502)
+                div.field 
+                    div.label(for= 'room') User room
+                    input(type= 'text' name= 'room' placeholder='room abc')
+                input(type="submit" value="Submit")
+                
