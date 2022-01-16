@@ -1,18 +1,21 @@
-extends layout 
+extends users_template 
 block content 
-    form(method="GET")
-        input(type="text" placeholder="room" name="room")
-        input(type= "text" placeholder= "useremail" name= "useremail")
-        input(type="text" name= "ipaddress" placeholder= "modbus address")
-        input(type= "submit" value="Search")
+    div(style="float: right; color: red")
+        form(method="GET" action='/admin/users/search')
+            input(type="text" placeholder="enter user info: user name, email, room .." name="search_info" style="width: 300px" )
+            
+            input(type= "submit" value="Search" style= "" )
+        
     each user in users 
-        ul 
+        div(style="margin-top: 50px; border-bottom: 1px solid")
+          ul 
             li Username:  #{user.username} 
             li Email:  #{user.email} 
             li Room:  #{user.room} 
-            li modbus address:  #{user.ipAddress}
-            li link: 
-                a(href='/users/'+ user.id) go to user page
+            li Modbus address:  #{user.ipAddress}
+            li Port: #{user.port}
+            li 
+                a(href='/admin/users/'+ user.id) Go to user data
             li
                 p 
-                    a(href='/user/'+user.id+'/delete') Delete User
+                    a(href='/admin/user/'+user.id+'/delete') Delete User

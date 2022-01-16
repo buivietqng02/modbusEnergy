@@ -85,4 +85,87 @@ exports.ipList= async  function() {
    
 
 }
+//delete all users
+exports.destroy= async function() {
+    var users= await User.find({});
+    users.forEach(async function(user) {
+        await user.remove();
+    })
+    
+}
+exports.dataFilterByDate= function(datas){
+    //function get number of distributedd point from an array
+    function reducer(arr) {
+      let retArr=[];
+      let done;
+        for (let i=0; i<24; i++)
+          done=false;
+        {
+          for (let j=0; j< arr.length; j++){
+            if (arr[j].time.getHours()==i){
+                  retArr.push(arr[j]);
+                  done= true;
+                  break;
+            }
+            
+          }
+          if(!done) retArr.push(null);
+        }
 
+        return retArr;
+    }
+    const q= req.query;//date
+    console.log(q.date);
+    var obj= q.date.split('-');
+    var year= obj[0];
+    var month= obj[1];
+    var date= obj[2];
+    console.log(year);
+    console.log(month);
+    console.log(date);
+    var filter= datas.filter(data=> {
+      return  (data.time.getFullYear()==year)&&((data.time.getMonth()+1)==month)&&(data.time.getDate()== date)
+      })
+    
+    console.log("filter length: "+filter.length);
+
+    return filter;
+}
+exports.dataFilterByMonth = function(datas){
+    //function get number of distributedd point from an array
+    function reducer(arr) {
+      //assume arr hold all data in the same month
+      let retArr=[];
+      let done;
+      for (let i=0; i< 31; i++)
+      {
+        done= false;
+        for (let j=0; j< arr.length;j++){
+          if (arr[j].time.getDate()==(i+1)) {
+            retArr.push(arr[j]);
+            done=true;
+            break;
+
+          }
+        }
+        if (!done) retArr.push(null);
+      }
+      return retArr;
+
+    }
+    const q= req.query;//date
+    console.log(q.month);
+    var obj= q.month.split('-');
+    var year= obj[0];
+    var month= obj[1];
+    console.log(year);
+    console.log(month);
+    
+    var filter= datas.filter(data=> {
+      return  (data.time.getFullYear()==year)&&((data.time.getMonth()+1)==month)
+      })
+    
+    console.log("filter length: "+filter.length);
+
+    return filter;
+}

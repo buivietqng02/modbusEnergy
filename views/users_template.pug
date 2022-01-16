@@ -1,0 +1,53 @@
+doctype html
+html
+  head
+    title= title
+    link(rel= "shortcut icon" href="")
+    script(src="https://cdn.jsdelivr.net/npm/chart.js@3.6.0/dist/chart.min.js")
+    link(rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous")
+    style.
+        ul {
+            list-style-type: none
+        }
+     
+      
+    
+  body
+   
+    div(class="container header" style= "margin-top: 50px; float: left")
+        h2 CUSTOMER MANAGEMENT SITE  
+                
+    
+
+        
+        div.row(style="margin-top: 30px")   
+             
+            div(class= " col-sm-3")
+                .get_users 
+                     
+                    a(href="/admin/users") SHOW ALL USERS
+            
+                div(class="create_user" style= "margin-top: 30px")
+                     
+                    a(href="/admin/signup") CREATE USER
+                div.plot(style="margin-top: 50px")
+                
+                    h5 Plot data of total energy comsumption 
+                    form(action= `/admin/users/plot/date`, method='get')
+                    
+                        div(class="form-group")
+                            label(for='date') Please choose date to plot 
+                            input(type="date" name= "date" class='form-control')
+                        
+        
+                        input(type="submit" value= "PLOT" class='form-control btn-primary')
+                    form(action= `/admin/users/plot/month`, method='get')
+                    
+                        
+                        div(class='form-group')
+                            label(for='month') Please choose month to plot 
+                            input(type="month" name= "month" min="2018-03" placeholder= "yyyy-mm" class='form-control')
+        
+                        input(type="submit" value= "PLOT" class='form-control btn-primary')
+            div(class="col-sm-8")
+                block content 
