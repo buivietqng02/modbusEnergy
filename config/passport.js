@@ -26,7 +26,7 @@ passport.use('local.signup', new LocalStrategy({
         newUser.password= newUser.encryptPassword(password);
         newUser.username= req.body.username;
         newUser.ipAddress= req.body.modbus;
-        newUser.port= req.body.port;
+        newUser.moduleID= req.body.moduleID;
         newUser.room= req.body.room;
         newUser.save(function(err, result){
             if (err) {

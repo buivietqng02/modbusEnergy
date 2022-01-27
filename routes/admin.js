@@ -98,18 +98,9 @@ router.get('/admin/plot1/date', async function(req, res, next){
     res.send('under construction');
   })
   router.get('/users/:id/plot/date', function(req, res, next){
-    const q= req.query;//date
-    console.log(q.date);
-    var obj= q.date.split('-');
-    console.log(q);
-    var year= obj[0];
-    var month= obj[1];
-    var date= obj[2];
-    console.log(year);
-    console.log(month);
-    console.log(date);
-  
-   User.findById({_id: req.params.id}, function(err, result){
+    var date= req.query.date
+    console.log('data input: '+ date);
+     User.findById({_id: req.params.id}, function(err, result){
       if (err) {next(err);}
       console.log(result);
       var ip= result.ipAddress;
@@ -126,80 +117,58 @@ router.get('/admin/plot1/date', async function(req, res, next){
           return;
       }
           else {
-
-            var datas= mb.datas.map(item=>Object.assign(item, {"time": new Date(item.time)}));
+            var filterArr=Modbus.dataFilterByDate(mb.datas, date);
+            var reduceArr= Modbus.reducerDate(filterArr);
             var time=[];
             var value=[];
-            datas.forEach(data=> {
+            reduceArr.forEach(data=> {
             time.push(data.time)
             value.push(data.value)
           });
-          console.log(datas.length);
-          //consider already have day in datas 
-          //Date.getDay() 1-31
-          //Date.getFullYear()
-          //Date.getMonth()  0-11
-          var filter= datas.filter(data=> {
-           return  (data.time.getFullYear()==year)&&((data.time.getMonth()+1)==month)&&(data.time.getDate()== date)
-          })
-            
-            console.log(filter.length);
-           
           
-          var time2= time.slice(10, 20);
-          var value2= value.slice(10,20);
-          res.render('admin_user_plot', {time1: time2, value1: value2, data:true
-          });
+          
+          res.render('admin_user_plot', {time1: time, value1: value, data:true
+         });
           }
       });
   })
   })
   router.get('/users/:id/plot/month', function(req, res, next){
-    const q= req.query;//date
-    console.log("dsvsjdvksd" +q.month);
+    const q= req.query.month;//month
     
-  
-   User.findById({_id: req.params.id}, function(err, result){
+    User.findById({_id: req.params.id}, function(err, result){
       if (err) {next(err);}
       console.log(result);
       var ip= result.ipAddress;
-      var formActionDate=  '/user/'+ req.params.id + '/plot/date';
-      var formActionMonth=  '/user/'+ req.params.id + '/plot/month';
-      ModbusData.findOne({ip_address: ip}, function(err, mb){
       
+      ModbusData.findOne({ip_address: ip}, function(err, mb){
           if (err) {next(err);}
-          console.log(mb);
           if ((mb=== null)||(mb===undefined)) {
-            console.log("here");
-            res.render("admin_user_plot", {data: false}
-            );
-  
+          console.log("here");
+          res.render("admin_user_plot", {data: false 
+          });
           return;
-      }
-          else {
+    }
+        else {
+          var datas= mb.datas;
+          var filterArr= Modbus.dataFilterByMonth(datas,q);
+          var reduceArr= Modbus.reducerMonth(filterArr);
+          var time=[];
+          var value=[];
+          reduceArr.forEach(data=> {
+          time.push(data.time)
+          value.push(data.value)
+        });
+        console.log("original length: "+ datas.length);
+        console.log("filter length: "+ filterArr.length);
+        console.log("reducer length: "+ reduceArr.length);
+        
+        res.render('admin_user_plot', {time1: time, value1: value, data:true
+        });
+        }
+    });
+})
   
-            var datas= mb.datas.map(item=>Object.assign(item, {"time": new Date(item.time)}));
-            var time=[];
-            var value=[];
-            datas.forEach(data=> {
-            time.push(data.time)
-            value.push(data.value)
-          });
-          console.log(datas.length);
-          //consider already have day in datas 
-          //Date.getDay() 1-31
-          //Date.getFullYear()
-          //Date.getMonth()  0-11
-          
-           
-          
-          var time2= time.slice(10, 20);
-          var value2= value.slice(10,20);
-          res.render('admin_user_plot', {time1: time2, value1: value2, data:true
-          });
-          }
-      });
-  })
   })
   router.get('/users/plot/date', async function(req, res, next){
     var data=[];
@@ -232,6 +201,15 @@ router.get('/admin/plot1/date', async function(req, res, next){
   })
   router.get('/users/plot/month', function(req, res, next){
     res.send("under construction");
+  })
+  router.get('/users/bill_create', function(req, res){
+      //Modbus.createBill
+      //Modbus.convertToPDF
+      
+      
+  })
+  router.get('/users/send_email', function(req, res){
+
   })
 
   module.exports= router;

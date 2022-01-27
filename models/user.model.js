@@ -6,7 +6,7 @@ var schema= new Schema({
     email: {type: String, required: true},
     password: {type: String, required: true},
     ipAddress: {type: String},
-    port: {type: Number},
+    moduleID: {type: Number},
     room: {type: String}
 });
 schema.methods.encryptPassword= function(password) {

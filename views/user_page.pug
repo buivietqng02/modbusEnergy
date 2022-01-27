@@ -46,16 +46,16 @@ html
             
                 div.bill(style="margin-top: 50px;  padding: 20px")
                     h3 Choose month to view bill
-                    form(action= `${formAction}`, method='get')
+                    form(action= `${formViewBill}`, method='get')
                     
                    
                         div(class='form-group')
                             label(for='month') Please choose month to view bill 
-                            input(type="month" name= "month" min="2018-03" placeholder= "yyyy-mm" class='form-control')
+                            input(type="month" name= "month" min="2018-03" placeholder= "yyyy-mm" class='form-control' required)
                         input(type="submit" value= "VIEW" class='form-control btn-primary')
                 div(class='comment' style= "margin-top: 50px; border: 1px solid; padding: 20px")
                     h3 send comment here
-                    form(action= `${formAction}`, method='post')
+                    form(action= ``, method='post')
                     
                    
                         div(class='form-group')

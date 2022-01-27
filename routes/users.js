@@ -4,6 +4,7 @@ var passport= require('passport');
 var ModbusData= require('../models/modbusData');
 var Modbus= require('../modbus.js');
 var User= require('../models/user.model');
+var fs= require('fs');
 
 
 const {body, validationResult} = require('express-validator');
@@ -44,191 +45,103 @@ router.get('/user/:id', async function(req, res, next){
   catch(err) {
     next(err);
     }
+    if (!user) 
+    {res.end('no user found');return }
  console.log(user[0].email);
  
  var formActionDate=  req.url+'/plot/date';
 var formActionMonth= req.url+'/plot/month';
- res.render('user_page', {email: user[0].email, req: req, formActionDate:formActionDate, formActionMonth:formActionMonth} );
+var formViewBill= req.url+ '/invoice';
+ res.render('user_page', {email: user[0].email, req: req, 
+  formActionDate:formActionDate,
+   formActionMonth:formActionMonth,
+   formViewBill: formViewBill });
 })
 //return data to plot
 router.get('/user/:id/plot/date',async  function(req, res, next){
+
+    var date= req.query.date
+    console.log('data input: '+ date);
      User.findById({_id: req.params.id}, function(err, result){
       if (err) {next(err);}
       console.log(result);
       var ip= result.ipAddress;
-      var formActionDate=  '/user/'+ req.params.id + '/plot/date';
-      var formActionMonth=  '/user/'+ req.params.id + '/plot/month';
-
+      var formActionDate=  '/user/'+ req.params.id + '/plot/date';//for action form plot
+      var formActionMonth=  '/user/'+ req.params.id + '/plot/month';//for action form plot
+      var formViewBill= '/user/'+ req.params.id+ '/invoice';
       ModbusData.findOne({ip_address: ip}, function(err, mb){
       
           if (err) {next(err);}
           console.log(mb);
           if ((mb=== null)||(mb===undefined)) {
             console.log("here");
-            res.render("plot", {data: false, formActionDate: formActionDate, formActionMonth: formActionMonth});
+            res.render("plot", {data: false, formActionDate: formActionDate, 
+              formActionMonth: formActionMonth,
+              formViewBill: formViewBill});
 
           return;
       }
           else {
-
-            var datas= mb.datas.map(item=>Object.assign(item, {"time": (new Date(item.time)).toLocaleTimeString()}));
+            var filterArr=Modbus.dataFilterByDate(mb.datas, date);
+            var reduceArr= Modbus.reducerDate(filterArr);
             var time=[];
             var value=[];
-            datas.forEach(data=> {
+            reduceArr.forEach(data=> {
             time.push(data.time)
             value.push(data.value)
           });
-          console.log("original length"+ datas.length);
-          //consider already have day in datas 
-          //Date.getDay() 1-31
-          //Date.getFullYear()
-          //Date.getMonth()  0-11
-          //nghien cuu function only take 24 data points in a days.
-          function dataFilterByDate(datas){
-            //function get number of distributedd point from an array
-            function reducer(arr) {
-              let retArr=[];
-              let done;
-                for (let i=0; i<24; i++)
-                  done=false;
-                {
-                  for (let j=0; j< arr.length; j++){
-                    if (arr[j].time.getHours()==i){
-                          retArr.push(arr[j]);
-                          done= true;
-                          break;
-                    }
-                    
-                  }
-                  if(!done) retArr.push(null);
-                }
-
-                return retArr;
-            }
-            const q= req.query;//date
-            console.log(q.date);
-            var obj= q.date.split('-');
-            var year= obj[0];
-            var month= obj[1];
-            var date= obj[2];
-            console.log(year);
-            console.log(month);
-            console.log(date);
-            var filter= datas.filter(data=> {
-              return  (data.time.getFullYear()==year)&&((data.time.getMonth()+1)==month)&&(data.time.getDate()== date)
-              })
-            
-            console.log("filter length: "+filter.length);
-
-            return filter;
-        }
-       // var filer= dataFilterByDate(datas);
-
-          
-          var time2= time.slice(10, 1000);
-          var value2= value.slice(10,1000);
-          res.render('plot', {time1: time2, value1: value2, data:true, formActionDate: formActionDate, 
-          formActionMonth: formActionMonth});
+          res.render('plot', {time1: time, value1: value, data:true, 
+            formActionDate: formActionDate, 
+          formActionMonth: formActionMonth,
+          formViewBill: formViewBill});
           }
       });
   })
 });
 //get all users
-
 router.get('/user/:id/plot/month',async  function(req, res, next){
-  
-  function dataFilterByMonth(datas){
-    //function get number of distributedd point from an array
-    function reducer(arr) {
-      //assume arr hold all data in the same month
-      let retArr=[];
-      let done;
-      for (let i=0; i< 31; i++)
-      {
-        done= false;
-        for (let j=0; j< arr.length;j++){
-          if (arr[j].time.getDate()==(i+1)) {
-            retArr.push(arr[j]);
-            done=true;
-            break;
-
-          }
-        }
-        if (!done) retArr.push(null);
-      }
-      return retArr;
-
-    }
-    const q= req.query;//date
-    console.log(q.month);
-    var obj= q.month.split('-');
-    var year= obj[0];
-    var month= obj[1];
-    console.log(year);
-    console.log(month);
+    const q= req.query.month;//month
     
-    var filter= datas.filter(data=> {
-      return  (data.time.getFullYear()==year)&&((data.time.getMonth()+1)==month)
-      })
-    
-    console.log("filter length: "+filter.length);
-
-    return filter;
-}
-  User.findById({_id: req.params.id}, function(err, result){
-    if (err) {next(err);}
-    console.log(result);
-    var ip= result.ipAddress;
-    var formActionDate=  '/user/'+ req.params.id + '/plot/date';
-    var formActionMonth=  '/user/'+ req.params.id + '/plot/month';
-    ModbusData.findOne({ip_address: ip}, function(err, mb){
-    
-        if (err) {next(err);}
-        
-        if ((mb=== null)||(mb===undefined)) {
+    User.findById({_id: req.params.id}, function(err, result){
+      if (err) {next(err);}
+      console.log(result);
+      var ip= result.ipAddress;
+      var formActionDate=  '/user/'+ req.params.id + '/plot/date';
+      var formActionMonth=  '/user/'+ req.params.id + '/plot/month';
+      var formViewBill=  '/user/'+ req.params.id + '/invoice';
+      ModbusData.findOne({ip_address: ip}, function(err, mb){
+          if (err) {next(err);}
+          if ((mb=== null)||(mb===undefined)) {
           console.log("here");
           res.render("plot", {data: false, formActionDate: formActionDate, 
-          formActionMonth: formActionMonth});
-
-        return;
+          formActionMonth: formActionMonth,
+          formViewBill: formViewBill});
+          return;
     }
         else {
-
-          var datas= mb.datas.map(item=>Object.assign(item, {"time": new Date(item.time)}));
+          var datas= mb.datas;
+          var filterArr= Modbus.dataFilterByMonth(datas,q);
+          var reduceArr= Modbus.reducerMonth(filterArr);
           var time=[];
           var value=[];
-          datas.forEach(data=> {
+          reduceArr.forEach(data=> {
           time.push(data.time)
           value.push(data.value)
         });
-        console.log(datas.length);
-        //consider already have day in datas 
-        //Date.getDay() 1-31
-        //Date.getFullYear()
-        //Date.getMonth()  0-11
+        console.log("original length: "+ datas.length);
+        console.log("filter length: "+ filterArr.length);
+        console.log("reducer length: "+ reduceArr.length);
         
-         
-        
-        var time2= time.slice(10, 20);
-        var value2= value.slice(10,20);
-        res.render('plot', {time1: time2, value1: value2, data:true, formActionDate: formActionDate,
-        formActionMonth: formActionMonth});
+        res.render('plot', {time1: time, value1: value, data:true,
+           formActionDate: formActionDate,
+          formActionMonth: formActionMonth,
+          formViewBill: formViewBill});
         }
     });
 })
   
 });
-//get all users
 
-
-//delete a user
-
-
-
-
-
-//plot data the days in month of all user
-//create bill and send email
 
 router.get('/change_password_get', function(req, res){
   res.render('change_password')
@@ -271,6 +184,24 @@ router.post('/change_password_post',
     
   });
 })
-
+router.get('/user/:id/invoice', async function(req, res){
+  // aledy have user and month
+  var user= await User.findById({_id: req.params.id});
+  var month= req.query.month;
+  var path= './bill/' + user.email+ '_bill/'+ month+'.html';
+  
+  try {
+  var stats= fs.statSync(path);
+  }
+  catch (err) {res.end("no invoice found");}
+  
+  if (stats) {
+  var html=fs.readFileSync(path, 'utf8');
+  
+   res.send(html);
+  
+  
+  }
+})
 
 module.exports = router;
