@@ -5,9 +5,7 @@ var schema= new Schema({
     username: {type: String},
     email: {type: String, required: true},
     password: {type: String, required: true},
-    ipAddress: {type: String},
-    moduleID: {type: Number},
-    room: {type: String}
+    meter: {type: Schema.Types.ObjectId, ref: 'ModbusData'}
 });
 schema.methods.encryptPassword= function(password) {
     return bcrypt.hashSync(password, bcrypt.genSaltSync(5), null);

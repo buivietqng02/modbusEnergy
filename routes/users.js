@@ -33,6 +33,7 @@ router.post('/signin', passport.authenticate('local.signin', {
   failureRedirect:'/signin',
   failureFlash: true
 }), function(req, res){
+  console.log(req.session);
   if (req.user.email=="admin@gmail.com") {res.redirect('/admin/users');}
 
  else  res.redirect('/user/'+req.user.id);

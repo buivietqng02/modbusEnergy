@@ -4,9 +4,9 @@ block content
     ul  
         li Username:  #{user.username} 
         li Email: #{user.email} 
-        li Room: #{user.room}
-        li Modbus Address: #{user.ipAddress}
-        li Modbus Port:  #{user.port} 
+        if (user.meter)
+            li Connect to meter: #{user.meter.info}
+        
         li Status: 
 
     p Do you really want to delete this user ?

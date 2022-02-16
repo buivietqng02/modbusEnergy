@@ -1,5 +1,6 @@
 var passport= require('passport');
 var User= require('../models/user.model');
+var ModbusData= require('../models/modbusData')
 var LocalStrategy= require('passport-local').Strategy;
 passport.serializeUser(function(user, done){
     done(null, user.id);
@@ -13,21 +14,25 @@ passport.use('local.signup', new LocalStrategy({
     usernameField: 'email',
     passwordField:'password',
     passReqToCallback: true
-}, function(req, email, password, done){
+}, async function(req, email, password, done){
     User.findOne({'email': email},  async function(err, user){
         if (err) {return done(err);}
         if (user) {
-            return done(null, false, {message: 'email already in use'})
+            return done(null, false, {message: 'Email already in use'})
         }
-        var findUser= await User.find({ipAddress:req.body.modbus});
-        if (findUser.length>0) return done(null,false, {message: 'modbus address already in use'})
+        
         var newUser= new User();
         newUser.email= email;
         newUser.password= newUser.encryptPassword(password);
         newUser.username= req.body.username;
-        newUser.ipAddress= req.body.modbus;
-        newUser.moduleID= req.body.moduleID;
-        newUser.room= req.body.room;
+        //Room: room 3, 
+        var splitData= req.body.meter.split(',');
+        var room= splitData[0].split(':')[1].trim();
+        var slaveId=splitData[1].split(':')[1].trim();
+        var ip= splitData[2].split(':')[1].trim();
+       var meter= await ModbusData.findOne({room: room, slaveId: slaveId, ip_address: ip});
+       newUser.meter= meter._id;
+       console.log(meter);
         newUser.save(function(err, result){
             if (err) {
                 return done(err);

@@ -6,56 +6,58 @@ var mongoose= require('mongoose');
 var User= require('./models/user.model');
 var pdf= require('html-pdf');
 const path= require('path');
-const nodemailer= require('nodemailer');
-exports.ipList= async  function() {
-    var ipList=new Array();
-    var list= await User.find({});
-        list.forEach((item)=> {
-            if ((item.ipAddress)&&(item.moduleID))
-            ipList.push({ipAddress: item.ipAdress, slaveID: item.moduleID});
-        })
 
-    console.log(ipList);
-    return ipList;
-}
-     exports.readData=async function(obj, registerAddress){
+var status={};
+const nodemailer= require('nodemailer');
+exports.status= status;
+     exports.readData=async function(meter, registerAddress){
         const socket= new net.Socket();
-        const client= new modbus.client.TCP(socket,obj.slaveID);
+        
+        const client= new modbus.client.TCP(socket,meter.slaveID);
   
         var options= {
-              'host': obj.ipAddress,
+              'host': meter.ip_address,
               'port': "502"
           };
           socket.connect(options);
           socket.on('connect', async function(){
           console.log('connected  to: '+ socket.remoteAddress);
+          status[meter.info]="connected";
           var t= setInterval(async function(){
+              
+            try {
 
+            var r= await client.readHoldingRegisters(registerAddress, 3);
+            }
+            catch(err){
+              console.log(err);
+              clearInterval(t);
+              return false;
+            }console.log("hi");
+            console.log(r.response._body._valuesAsArray[0]);
 
-          var r= await client.readHoldingRegisters(registerAddress, 1);
-         console.log(r.response._body._valuesAsArray);
-         var mdata= await  ModbusData.findOne({ip_address: obj.ipAddress, slaveID: obj.slaveID});
-         if (mdata && mdata.datas) {
-           mdata.datas.push({value: r.response._body._valuesAsArray[0],
-          time: new Date()});
-          await mdata.save();
-         } else {
-           var newOne= new ModbusData({ip_address: ip, slaveID: obj.slaveID});
-           newOne.datas.push({value: r.response._body._valuesAsArray[0],
-          time: new Date()});
-          await newOne.save();
-         }
-          }, 10000)
-            socket.on('error', function(err){
-                clearInterval(t);
-            })
+              
+            let obj= {time: new Date(), value:r.response._body._valuesAsArray }
+            
+            
+            meter.datas.push(obj);
+            meter.save(function(err){
+              if (err) console.log(err);
+              clearInterval(r);
+            });
+           
+         
+           
+            }, 20000)
+           
         
-        });
+            });
 
-      socket.on('error', function(error){
-      console.log('error when access ip:'+ ip+' error code '+ error.code);
-      
-      socket.connect(options);// if error try to reconnect
+              socket.on('error', function(error){
+              console.log('error when access ip:'+ meter.ip_address+' error code '+ error.code);
+              status[meter.info]='error when access ip:'+ meter.ip_address+' error code '+ error.code;
+                
+               socket.connect(options);// if error try to reconnect
       //socket.end();
   
 })
@@ -86,6 +88,7 @@ exports.reducerDate=function(arr) {
         }
         
       }
+      if (!done) retArr.push(null);
      
     }
     console.log(retArr.length);
@@ -126,6 +129,7 @@ exports.reducerMonth=function(arr) {
 
       }
     }
+    if (!done) retArr.push(null);
     }
   return retArr;
 
@@ -220,11 +224,6 @@ exports.createFolder=  async function() {
     
   
 }
-//can you create some job
-//read the data and ldan calculate the amount of mony
-//it should be the user id and month is parameter
-//month format is yyyy-mm
-//need to test these funcyion tomorroe
 
 
 exports.createBill=async function(user_id, month) {//month in format  string yyyy-mm
@@ -236,8 +235,14 @@ exports.createBill=async function(user_id, month) {//month in format  string yyy
     }
     if (user) {
       console.log(user);
+      try {
         var modbusData= await ModbusData.findOne({ip_address: user.ipAddress});
-        if (modbusData== null) return;
+      }
+      catch(err) {
+        console.log(err);
+        return null;
+      }
+        if (modbusData== null) return null;
         var filterData= dataFilterByMonth(modbusData.datas, month);
         var total;
         if (filterData.length==0) total=0;
@@ -293,36 +298,32 @@ exports.deleteFile= function(filename){
     })
   }
 }
-exports.addRecord= async function(ip,record ){
+//assume data: [kw, kwh]
+exports.addRecord= async function(ip,slaveId, records ){
   try {
-  var data= await ModbusData.findOne({ip_address: ip});
+  var data= await ModbusData.findOne({ip_address: ip, slaveId: slaveId});
   }
   catch (err) {
     console.log(err);
 
     return;
   }
-  if (data==null) {
-    var obj= {ip_address: ip};
-    var newModbus= new ModbusData(obj);
-    newModbus.save(function(err){
-      if (err) {console.log(err);
+  if (data==null||data==undefined) {
+    console.log("no meter");
       return;
     }
-    newModbus.datas.push(record);
-     newModbus.save()
-
-    })
-  } else {
-    console.log(data.datas.length)
-  data.datas.push(record);
-  data.save(function(err){
+   
+   else {
+    console.log("meter length: "+ data.datas.length)
+    data.datas=data.datas.concat(records);
+    data.save(function(err){
     if (err) {console.log(err);
    
+      return;
     }
-    else console.log(data.datas.length);
+   
   }) 
-  
+    return data.datas
   }
 
 }

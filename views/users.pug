@@ -6,14 +6,14 @@ block content
             
             input(type= "submit" value="Search" style= "" )
         
-    each user in users 
+    each user in list 
         div(style="margin-top: 50px; border-bottom: 1px solid")
           ul 
             li Username:  #{user.username} 
             li Email:  #{user.email} 
-            li Room:  #{user.room} 
-            li Modbus address:  #{user.ipAddress}
-            li Port: #{user.port}
+            if (user.meter)
+                li Connect to meter:  #{user.meter.info} 
+             
             li 
                 a(href='/admin/users/'+ user.id) Go to user data
             li

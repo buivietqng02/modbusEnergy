@@ -4,7 +4,7 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var nodemailer= require('nodemailer');
-var indexRouter = require('./routes/index');
+
 var usersRouter = require('./routes/users');
 var adminRouter= require('./routes/admin');
 var mongoose= require('mongoose');
@@ -23,8 +23,9 @@ app.use(session({
   secret:'cat',
   resave: false,
   saveUninitialized: false,
-  cookie: {maxAge:600}
+  cookie: {maxAge:6000}
 }));
+
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
@@ -37,21 +38,41 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-try {
+ try {
   mongoose.connect('mongodb+srv://vietbk02:vietbk02@cluster0.8yaqq.mongodb.net/nodemailer?retryWrites=true&w=majority',
-{
+  {
     useUnifiedTopology: true,
     useNewUrlParser: true
 
-} 
+  } 
     );
-    const db= mongoose.connection;
-db.on('error', (error)=> {throw error;})
-db.once('open', ()=> {console.log('connected to db')})
+   
+
+
 }
 catch (err) {
-  
+  console.log('error when access db'+ err.message);
 }
+
+    const db= mongoose.connection; 
+    db.once('open', ()=> {console.log('connected to db')})
+   /*  try {
+      mongoose.connect('mongodb://localhost:27017/',
+      {
+        useUnifiedTopology: true,
+        useNewUrlParser: true
+    
+      } 
+        );
+       
+    
+    db.once('open', ()=> {console.log('connected to db')})
+    }
+    catch (err) {
+      console.log('error when access db');
+    }
+    
+        const db= mongoose.connection; */
 
 require('./config/passport');
 //app.use('/', indexRouter);
@@ -71,59 +92,55 @@ app.use(function(req, res, next) {
 
 var Modbus= require('./modbus');
 
-
+async function getAllMeterAndStartRead() {
   
-  var ipList=  [];
-  
-  
- 
-  ipList.push('192.168.1.101');
-  ipList.push('127.0.0.1');
-  ipList.push('192.168.0.102');
-  
-  //var ipList=["192.168.1.10", "192.168.1.20", "192.168.1.110"];
- for (let ip of ipList){
-  
-      Modbus.readData(ip,1);
-      
- }
-  // Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date()})
-  //  Modbus.destroy();
- // Modbus.createFolder();const date2 = new Date('1995-12-17T03:24:00');
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-19T07:00:00')});
- // Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T01:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T02:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T03:00:00')});
-//Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T04:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T05:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T06:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 14.0, time:new Date('2021-12-17T07:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T08:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T09:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T10:00:00')});
-// Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T11:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T12:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T14:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T15:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T20:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T21:00:00')});
- //Modbus.addRecord('192.168.1.101', {value: 10.0, time:new Date('2021-12-17T23:00:00')});
- 
-  // Modbus.sendEmail('quocvietqng02@gmail.com', './test.js');
-
-  //Modbus.createFolder();
- // Modbus.createBill('61d9ae086a431a77e177087a', '2021-12');
-//Modbus.convertToPDF('./bill/viet100@gmail.com_bill/2021-12.html');
-
-var automateSendEmail= async function(month) {
-  var users= await User.find({});
-  users.forEach(function(user){
-    Modbus.createBill(user._id, month);
-
-  })
+  try{
+  var r=await ModbusData.find({});
+    console.log(r)
+  }
+  catch(err) {
+    console.log(err);
+    return;
+  }
+  for(let meter of r) {
+    Modbus.readData(meter, 0);
+  }
 
 }
-//automateSendEmail('2021-03');
+//getAllMeterAndStartRead();
 
-module.exports = app;
+function createRecord(dateInput, n){
+  var record=[];
+  var year= dateInput.getFullYear();
+  var month= dateInput.getMonth();
+  var date= dateInput.getDate();
+  var hour= dateInput.getHours();
+  var minute= dateInput.getMinutes();
+  for (let i=0; i< n;i++){
+    var  d= new Date(year, month, date, hour, minute+ 10*i, 0);
+    
+    record.push({time:d, value: (10*Math.random()+10*i).toFixed(2) })
+  }
+  console.log(date);
+  return record;
+}
+console.log(createRecord(new Date(2021, 1,1,12,0,0), 100));
+  var d=  Modbus.addRecord('192.168.1.3', 3, createRecord(new Date(2021, 1,1,12,0,0), 100)); 
+  d.then(m=> Modbus.dataFilterByMonth(m, '2021-02'))
+  .then(d=>Modbus.reducerMonth(d))
+  .then(d=>{console.log("reduce");
+        console.log(d)});
+        
+
+    
+ 
+ 
+
+
+  
+  
+  
+  
+ 
+  module.exports = app;
 
