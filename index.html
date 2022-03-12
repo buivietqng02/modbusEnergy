@@ -4,50 +4,41 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
-    <style>
-        #chart {
-            color: "red";
-            width: 600px;
-            height: 800px
-        }
-    </style>
     <title>Document</title>
 </head>
 <body>
-    <div id="chart">
-    <canvas id="myChart" width="400" height="400"></canvas>
-    </div>
-    <script>
-        const ctx= document.getElementById("myChart").getContext("2d");
-        const myChart= new Chart(ctx, {
-            type: 'line',
-            
-            data: {
-                labels: [new Date('2021/12/12 13:00:00'),
-                new Date('2021/12/12 13:01:00'),
-                new Date('2021/12/12 13:02:00'),
-                new Date('2021/12/12 13:03:00'),
-                new Date('2021/12/12 13:04:00'),
-                new Date('2021/12/12 13:10:00')
-            ],
-                datasets:[{
-                    label: 'dsfdf',
-                    data: [23,43,12,35,12,15]
-                }]
-               
-            },
-            options: {
-                scales: {
-                   xAxis: {
-                    
-                  
-                  
+  <h1 id="message">Javascript get element buy id</h1>
+  <div id="btn">
+    <button id="btnRed">Red</button>
+    <button id="btnGreen">Green</button>
+    <button id="btnBlue">Blue</button>
+  </div>
 
-                    }
-                }
-            }
-        })
-    </script>
 </body>
 </html>
+<script>
+    const changeColor= (newColor) =>{
+      const element= document.getElementById('message');
+      element.style.color= newColor;
+    }
+    let btn= document.getElementById('btn');
+    btn.addEventListener('click', (event)=> {
+        let target= event.target;
+        switch (target.id) {
+          case "btnRed":
+           changeColor("red");
+            break;
+          case "btnGreen":
+            changeColor("green");
+            break;
+          case "btnBlue":
+            changeColor("blue");
+            break;
+        }
+    })
+
+
+
+
+
+</script>

@@ -263,7 +263,7 @@ router.get('/users',  function(req, res, next){
       })
     })
 
-  //id is the ObjectId of meter being called
+  //id is the ObjectId of user being called, send to brower in js code
   router.get('/get_current_kw/:id',  async function(req, res, next){
     try {
     var meter= ModbusData.findById(req.params.id);
@@ -275,7 +275,13 @@ router.get('/users',  function(req, res, next){
     res.json(meter.datas[meter.datas.length-1]);
 
   })
-  
+ //get  data kwh when month or day, processing the data in the maner appropriagte
+ //if date read hour first  /getsomething/:id(of user)?month=or date=
+ //so whenever you want data 
+router.get('/')
+
+
+
   
 
   module.exports= router;

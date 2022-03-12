@@ -12,7 +12,7 @@ const nodemailer= require('nodemailer');
 exports.status= status;
      exports.readData=async function(meter, registerAddress){
         const socket= new net.Socket();
-        
+        //client thi chi co mot, 
         const client= new modbus.client.TCP(socket,meter.slaveID);
   
         var options= {
